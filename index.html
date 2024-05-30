@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Image Converter</title>
+<style>
+.container {
+    text-align: center;
+    margin-top: 50px;
+}
+
+textarea {
+    width: 300px;
+    height: auto;
+    min-height: 100px;
+    margin-bottom: 20px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin: 5px;
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <textarea id="textInput" placeholder="Enter text..." oninput="autoResize()"></textarea>
+        <div>
+            <label for="fontSize">Font Size:</label>
+            <input type="range" id="fontSize" min="10" max="40" value="20">
+        </div>
+        <div>
+            <label for="textColor">Text Color:</label>
+            <input type="color" id="textColor" value="#000000">
+        </div>
+        <div>
+            <label for="backgroundColor">Background Color:</label>
+            <input type="color" id="backgroundColor" value="#ffffff">
+        </div>
+        <div>
+            <label for="fileType">File Type:</label>
+            <select id="fileType">
+                <option value="png">PNG</option>
+                <option value="jpeg">JPEG</option>
+            </select>
+        </div>
+        <button onclick="convertToImage()">Convert</button>
+        <a id="downloadBtn" style="display: none;" onclick="downloadImage()">Download</a>
+        <div id="imageContainer"></div>
+    </div>
+<script>
+function autoResize() {
+    var textArea = document.getElementById("textInput");
+    textArea.style.height = "auto";
+    textArea.style.height = textArea.scrollHeight + "px";
+}
+
+function wrapText(context, text, x, y, maxWidth, lineHeight) {
+    var words = text.split(' ');
+    var line = '';
+    var lines = [];
+
+    for (var n = 0; n < words.length; n++) {
+        var testLine = line + words[n] + ' ';
+        var metrics = context.measureText(testLine);
+        var testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+            lines.push(line);
+            line = words[n] + ' ';
+        } else {
+            line = testLine;
+        }
+    }
+    lines.push(line);
+    for (var i = 0; i < lines.length; i++) {
+        context.fillText(lines[i], x, y + (i * lineHeight));
+    }
+    return lines.length;
+}
+
+function convertToImage() {
+    var text = document.getElementById("textInput").value;
+    var fontSize = parseInt(document.getElementById("fontSize").value);
+    var textColor = document.getElementById("textColor").value;
+    var backgroundColor = document.getElementById("backgroundColor").value;
+    var fileType = document.getElementById("fileType").value;
+
+    var canvas = document.createElement("canvas");
+    var ctx = canvas.getContext("2d");
+
+    var maxWidth = 380;
+    var lineHeight = fontSize * 1.2;
+    var padding = 20;
+
+    ctx.font = fontSize + "px Arial";
+    ctx.fillStyle = textColor;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+
+    var lines = text.split('\n');
+    var totalHeight = padding;
+    lines.forEach(function(line) {
+        var numLines = wrapText(ctx, line, padding, totalHeight, maxWidth, lineHeight);
+        totalHeight += numLines * lineHeight;
+    });
+
+    canvas.width = maxWidth + padding * 2;
+    canvas.height = totalHeight;
+
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = textColor;
+    totalHeight = padding;
+    lines.forEach(function(line) {
+        var numLines = wrapText(ctx, line, padding, totalHeight, maxWidth, lineHeight);
+        totalHeight += numLines * lineHeight;
+    });
+
+    var dataURL = canvas.toDataURL("image/" + fileType);
+    var img = document.createElement("img");
+    img.src = dataURL;
+
+    var imageContainer = document.getElementById("imageContainer");
+    imageContainer.innerHTML = "";
+    imageContainer.appendChild(img);
+
+    var downloadBtn = document.getElementById("downloadBtn");
+    downloadBtn.style.display = "inline-block";
+    downloadBtn.href = dataURL;
+    downloadBtn.download = "image." + fileType;
+}
+
+function downloadImage() {
+    var downloadBtn = document.getElementById("downloadBtn");
+    var link = document.createElement('a');
+    link.href = downloadBtn.href;
+    link.download = downloadBtn.download;
+    link.click();
+}
+</script>
+</body>
+</html>
