@@ -52,7 +52,7 @@ button {
             </select>
         </div>
         <button onclick="convertToImage()">Convert</button>
-        <a id="downloadBtn" style="display: none;" onclick="downloadImage()">Download</a>
+        <button id="downloadBtn" style="display: none;" onclick="downloadImage()">Download</button>
         <div id="imageContainer"></div>
     </div>
 <script>
@@ -132,17 +132,16 @@ function convertToImage() {
     imageContainer.innerHTML = "";
     imageContainer.appendChild(img);
 
-    var downloadBtn = document.getElementById("downloadBtn");
-    downloadBtn.style.display = "inline-block";
-    downloadBtn.href = dataURL;
-    downloadBtn.download = "image." + fileType;
+    document.getElementById("downloadBtn").style.display = "inline-block";
+    document.getElementById("downloadBtn").setAttribute("href", dataURL);
+    document.getElementById("downloadBtn").setAttribute("download", "image." + fileType);
 }
 
 function downloadImage() {
     var downloadBtn = document.getElementById("downloadBtn");
     var link = document.createElement('a');
-    link.href = downloadBtn.href;
-    link.download = downloadBtn.download;
+    link.href = downloadBtn.getAttribute('href');
+    link.download = downloadBtn.getAttribute('download');
     link.click();
 }
 </script>
