@@ -95,8 +95,6 @@
             var line = '';
             var lines = [];
 
-            context.font = context.font; // Set the font to ensure consistent measurement
-
             for (var n = 0; n < words.length; n++) {
                 var testLine = line + words[n] + ' ';
                 var metrics = context.measureText(testLine);
@@ -115,6 +113,40 @@
             return lines.length;
         }
 
+        function calculateCanvasSize(context, text, maxWidth, lineHeight) {
+            var lines = text.split('\n');
+            var totalLines = 0;
+            var maxLineWidth = 0;
+
+            lines.forEach(function(line) {
+                var words = line.split(' ');
+                var currentLine = '';
+                for (var n = 0; n < words.length; n++) {
+                    var testLine = currentLine + words[n] + ' ';
+                    var metrics = context.measureText(testLine);
+                    var testWidth = metrics.width;
+                    if (testWidth > maxWidth && n > 0) {
+                        totalLines++;
+                        if (context.measureText(currentLine).width > maxLineWidth) {
+                            maxLineWidth = context.measureText(currentLine).width;
+                        }
+                        currentLine = words[n] + ' ';
+                    } else {
+                        currentLine = testLine;
+                    }
+                }
+                totalLines++;
+                if (context.measureText(currentLine).width > maxLineWidth) {
+                    maxLineWidth = context.measureText(currentLine).width;
+                }
+            });
+
+            var canvasWidth = maxLineWidth + 40; // Adding padding
+            var canvasHeight = totalLines * lineHeight + 40; // Adding padding
+
+            return { width: canvasWidth, height: canvasHeight };
+        }
+
         function convertToImage() {
             var text = document.getElementById("textInput").value;
             var fontSize = parseInt(document.getElementById("fontSize").value);
@@ -128,29 +160,23 @@
 
             var maxWidth = 380;
             var lineHeight = fontSize * 1.2;
-            var padding = 20;
 
             ctx.font = fontSize + "px " + fontFamily;
             ctx.textAlign = "left";
             ctx.textBaseline = "top";
 
-            var lines = text.split('\n');
-            var totalHeight = padding;
-            lines.forEach(function(line) {
-                var numLines = wrapText(ctx, line, padding, totalHeight, maxWidth, lineHeight);
-                totalHeight += numLines * lineHeight;
-            });
-
-            canvas.width = maxWidth + padding * 2;
-            canvas.height = totalHeight;
+            var canvasSize = calculateCanvasSize(ctx, text, maxWidth, lineHeight);
+            canvas.width = canvasSize.width;
+            canvas.height = canvasSize.height;
 
             ctx.fillStyle = backgroundColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = textColor;
-            totalHeight = padding;
+            var totalHeight = 20;
+            var lines = text.split('\n');
             lines.forEach(function(line) {
-                var numLines = wrapText(ctx, line, padding, totalHeight, maxWidth, lineHeight);
+                var numLines = wrapText(ctx, line, 20, totalHeight, maxWidth, lineHeight);
                 totalHeight += numLines * lineHeight;
             });
 
