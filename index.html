@@ -95,6 +95,8 @@
             var line = '';
             var lines = [];
 
+            context.font = context.font; // Set the font to ensure consistent measurement
+
             for (var n = 0; n < words.length; n++) {
                 var testLine = line + words[n] + ' ';
                 var metrics = context.measureText(testLine);
