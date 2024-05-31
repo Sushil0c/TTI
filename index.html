@@ -4,30 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text to Image Converter</title>
-<style>
-.container {
-    text-align: center;
-    margin-top: 50px;
-}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&family=Hind+Siliguri:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Montserrat:wght@400;700&display=swap');
+        
+        @font-face {
+            font-family: 'Mangal';
+            src: url('mangal.ttf') format('truetype'); /* Update the path accordingly */
+        }
 
-textarea {
-    width: 300px;
-    height: auto;
-    min-height: 100px;
-    margin-bottom: 20px;
-    padding: 10px;
-    box-sizing: border-box;
-}
+        .container {
+            text-align: center;
+            margin-top: 50px;
+        }
 
-button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    margin: 5px;
-}
-</style>
+        textarea {
+            width: 300px;
+            height: auto;
+            min-height: 100px;
+            margin-bottom: 20px;
+            padding: 10px;
+            box-sizing: border-box;
+            resize: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #downloadBtn {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -35,6 +51,18 @@ button {
         <div>
             <label for="fontSize">Font Size:</label>
             <input type="range" id="fontSize" min="10" max="40" value="20">
+        </div>
+        <div>
+            <label for="fontFamily">Font Family:</label>
+            <select id="fontFamily">
+                <option value="'Mangal', sans-serif">Mangal</option>
+                <option value="'Noto Sans Devanagari', sans-serif">Noto Sans Devanagari</option>
+                <option value="'Mukta', sans-serif">Mukta</option>
+                <option value="'Hind Siliguri', sans-serif">Hind Siliguri</option>
+                <option value="'Roboto', sans-serif">Roboto</option>
+                <option value="'Open Sans', sans-serif">Open Sans</option>
+                <option value="'Montserrat', sans-serif">Montserrat</option>
+            </select>
         </div>
         <div>
             <label for="textColor">Text Color:</label>
@@ -52,98 +80,91 @@ button {
             </select>
         </div>
         <button onclick="convertToImage()">Convert</button>
-        <button id="downloadBtn" style="display: none;" onclick="downloadImage()">Download</button>
+        <a id="downloadBtn">Download</a>
         <div id="imageContainer"></div>
     </div>
-<script>
-function autoResize() {
-    var textArea = document.getElementById("textInput");
-    textArea.style.height = "auto";
-    textArea.style.height = textArea.scrollHeight + "px";
-}
-
-function wrapText(context, text, x, y, maxWidth, lineHeight) {
-    var words = text.split(' ');
-    var line = '';
-    var lines = [];
-
-    for (var n = 0; n < words.length; n++) {
-        var testLine = line + words[n] + ' ';
-        var metrics = context.measureText(testLine);
-        var testWidth = metrics.width;
-        if (testWidth > maxWidth && n > 0) {
-            lines.push(line);
-            line = words[n] + ' ';
-        } else {
-            line = testLine;
+    <script>
+        function autoResize() {
+            var textArea = document.getElementById("textInput");
+            textArea.style.height = "auto";
+            textArea.style.height = textArea.scrollHeight + "px";
         }
-    }
-    lines.push(line);
-    for (var i = 0; i < lines.length; i++) {
-        context.fillText(lines[i], x, y + (i * lineHeight));
-    }
-    return lines.length;
-}
 
-function convertToImage() {
-    var text = document.getElementById("textInput").value;
-    var fontSize = parseInt(document.getElementById("fontSize").value);
-    var textColor = document.getElementById("textColor").value;
-    var backgroundColor = document.getElementById("backgroundColor").value;
-    var fileType = document.getElementById("fileType").value;
+        function wrapText(context, text, x, y, maxWidth, lineHeight) {
+            var words = text.split(' ');
+            var line = '';
+            var lines = [];
 
-    var canvas = document.createElement("canvas");
-    var ctx = canvas.getContext("2d");
+            for (var n = 0; n < words.length; n++) {
+                var testLine = line + words[n] + ' ';
+                var metrics = context.measureText(testLine);
+                var testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    lines.push(line);
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line);
+            for (var i = 0; i < lines.length; i++) {
+                context.fillText(lines[i], x, y + (i * lineHeight));
+            }
+            return lines.length;
+        }
 
-    var maxWidth = 380;
-    var lineHeight = fontSize * 1.2;
-    var padding = 20;
+        function convertToImage() {
+            var text = document.getElementById("textInput").value;
+            var fontSize = parseInt(document.getElementById("fontSize").value);
+            var fontFamily = document.getElementById("fontFamily").value;
+            var textColor = document.getElementById("textColor").value;
+            var backgroundColor = document.getElementById("backgroundColor").value;
+            var fileType = document.getElementById("fileType").value;
 
-    ctx.font = fontSize + "px Arial";
-    ctx.fillStyle = textColor;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
+            var canvas = document.createElement("canvas");
+            var ctx = canvas.getContext("2d");
 
-    var lines = text.split('\n');
-    var totalHeight = padding;
-    lines.forEach(function(line) {
-        var numLines = wrapText(ctx, line, padding, totalHeight, maxWidth, lineHeight);
-        totalHeight += numLines * lineHeight;
-    });
+            var maxWidth = 380;
+            var lineHeight = fontSize * 1.2;
+            var padding = 20;
 
-    canvas.width = maxWidth + padding * 2;
-    canvas.height = totalHeight;
+            ctx.font = fontSize + "px " + fontFamily;
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
 
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+            var lines = text.split('\n');
+            var totalHeight = padding;
+            lines.forEach(function(line) {
+                var numLines = wrapText(ctx, line, padding, totalHeight, maxWidth, lineHeight);
+                totalHeight += numLines * lineHeight;
+            });
 
-    ctx.fillStyle = textColor;
-    totalHeight = padding;
-    lines.forEach(function(line) {
-        var numLines = wrapText(ctx, line, padding, totalHeight, maxWidth, lineHeight);
-        totalHeight += numLines * lineHeight;
-    });
+            canvas.width = maxWidth + padding * 2;
+            canvas.height = totalHeight;
 
-    var dataURL = canvas.toDataURL("image/" + fileType);
-    var img = document.createElement("img");
-    img.src = dataURL;
+            ctx.fillStyle = backgroundColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    var imageContainer = document.getElementById("imageContainer");
-    imageContainer.innerHTML = "";
-    imageContainer.appendChild(img);
+            ctx.fillStyle = textColor;
+            totalHeight = padding;
+            lines.forEach(function(line) {
+                var numLines = wrapText(ctx, line, padding, totalHeight, maxWidth, lineHeight);
+                totalHeight += numLines * lineHeight;
+            });
 
-    document.getElementById("downloadBtn").style.display = "inline-block";
-    document.getElementById("downloadBtn").setAttribute("href", dataURL);
-    document.getElementById("downloadBtn").setAttribute("download", "image." + fileType);
-}
+            var dataURL = canvas.toDataURL("image/" + fileType);
+            var img = document.createElement("img");
+            img.src = dataURL;
 
-function downloadImage() {
-    var downloadBtn = document.getElementById("downloadBtn");
-    var link = document.createElement('a');
-    link.href = downloadBtn.getAttribute('href');
-    link.download = downloadBtn.getAttribute('download');
-    link.click();
-}
-</script>
+            var imageContainer = document.getElementById("imageContainer");
+            imageContainer.innerHTML = "";
+            imageContainer.appendChild(img);
+
+            var downloadBtn = document.getElementById("downloadBtn");
+            downloadBtn.style.display = "inline-block";
+            downloadBtn.href = dataURL;
+            downloadBtn.download = "image." + fileType;
+        }
+    </script>
 </body>
-</html>
+</html>Enter file contents here
